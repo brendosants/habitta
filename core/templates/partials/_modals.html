@@ -1,0 +1,86 @@
+<!-- Logout Modal-->
+<div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Pronto para sair?</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">Selecione "Sair" abaixo se você estiver pronto para terminar sua sessão atual.</div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancelar</button>
+                <a class="btn btn-primary" href="{{ url_for('auth.logout') }}">Sair</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Perfil -->
+<div class="modal fade" id="perfilModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Editar Perfil</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="formEditarPerfil" action="{{ url_for('profile.atualizar_perfil') }}" enctype="multipart/form-data"
+                data-url="{{ url_for('profile.atualizar_perfil') }}">
+                <div class="modal-body">
+                    <div class="text-center mb-4">
+                        <img id="avatarPreview"
+                            src="{{ url_for('static', filename=get_user_avatar(current_user.id)) }}?v={{ range(1, 10000) | random }}"
+                            class="rounded-circle avatar-lg" alt="Avatar">
+                        <div class="mt-2">
+                            <label for="avatarUpload" class="btn btn-sm btn-outline-primary cursor-pointer">
+                                <i class="fas fa-camera"></i> Alterar Avatar
+                                <input type="file" id="avatarUpload" name="avatar" accept="image/*" class="d-none">
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="nome">Nome Completo *</label>
+                            <input type="text" class="form-control" id="nome" name="nome"
+                                data-value="{{ current_user.nome }}" value="{{ current_user.nome }}" required>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="cpf">CPF *</label>
+                            <input type="text" class="form-control cpf-mask" id="cpf" name="cpf"
+                                data-value="{{ current_user.cpf }}"
+                                value="{{ current_user.cpf if current_user and current_user.cpf else '' }}" required>
+                        </div>
+
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">E-mail *</label>
+                        <input type="email" class="form-control" id="email" name="email"
+                            data-value="{{ current_user.email }}" value="{{ current_user.email }}" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="senha">Nova Senha</label>
+                            <input type="password" class="form-control" id="senha" name="senha">
+                            <small class="form-text text-muted">Deixe em branco para manter a atual</small>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="confirmar_senha">Confirmar Senha</label>
+                            <input type="password" class="form-control" id="confirmar_senha" name="confirmar_senha">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

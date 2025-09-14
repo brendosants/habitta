@@ -1,0 +1,193 @@
+<!-- templates/pages/recomendacoes/listar.html -->
+{% extends "base.html" %}
+
+{% block title %}Estabelecimentos | Habitta{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">Recomendações de Imóveis</h1>
+            <p class="text-muted small">
+                Veja facilmente quais clientes já têm recomendações, quem precisa gerar e quem está sem
+                ofertas disponíveis.
+            </p>
+        </div>
+    </div>
+
+    <!-- Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">Clientes para recomendação</h6>
+            <div class="dropdown no-arrow">
+                <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                </a>
+                <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                    aria-labelledby="dropdownMenuLink">
+                    <a class="dropdown-item"
+                        href="{{ url_for('recomendacoes.exportar', filtro=filtro, busca=busca, formato='csv') }}">
+                        <i class="fas fa-file-csv fa-sm fa-fw mr-2 text-gray-400"></i> Exportar CSV
+                    </a>
+                    <a class="dropdown-item"
+                        href="{{ url_for('recomendacoes.exportar', filtro=filtro, busca=busca, formato='excel') }}">
+                        <i class="fas fa-file-excel fa-sm fa-fw mr-2 text-gray-400"></i> Exportar Excel
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body">
+
+            <!-- Filtros e busca -->
+            <div class="row mb-3">
+                <div class="col-md-8">
+                    <div class="btn-group" role="group" aria-label="Filtros de recomendação">
+                        <a href="{{ url_for('recomendacoes.listar', filtro='todos') }}"
+                            class="btn btn-outline-primary {% if filtro=='todos' %}active{% endif %}">
+                            <i class="fas fa-users"></i> Todos ({{ resumo.total }})
+                        </a>
+                        <a href="{{ url_for('recomendacoes.listar', filtro='com') }}"
+                            class="btn btn-outline-success {% if filtro=='com' %}active{% endif %}">
+                            <i class="fas fa-check-circle"></i> Já possuem ({{ resumo.com_recomendacao }})
+                        </a>
+                        <a href="{{ url_for('recomendacoes.listar', filtro='sem') }}"
+                            class="btn btn-outline-warning {% if filtro=='sem' %}active{% endif %}">
+                            <i class="fas fa-magic"></i> Compatíveis ({{ resumo.sem_recomendacao }})
+                        </a>
+                        <a href="{{ url_for('recomendacoes.listar', filtro='sem_ofertas') }}"
+                            class="btn btn-outline-danger {% if filtro=='sem_ofertas' %}active{% endif %}">
+                            <i class="fas fa-ban"></i> Sem ofertas ({{ resumo.sem_ofertas }})
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <form method="get" action="{{ url_for('recomendacoes.listar') }}">
+                        <div class="input-group input-group-sm">
+                            <input type="hidden" name="filtro" value="{{ request.args.get('filtro', 'todos') }}">
+                            <input type="text" name="busca" class="form-control" placeholder="Buscar por nome..."
+                                value="{{ request.args.get('busca', '') }}">
+                            <div class="input-group-append">
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tabela -->
+            <div class="table-responsive">
+                <table class="table table-bordered" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Renda Mensal (R$)</th>
+                            <th>Tipo de Interesse</th>
+                            <th>Bairros de Interesse</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for est in clientes %}
+                        <tr>
+                            <td>
+                                {{ est.nome }}
+                                {% if est.total_recomendacoes > 0 %}
+                                <i class="fas fa-check-circle text-success ml-1" title="Recomendação gerada"></i>
+                                {% elif est.total_ofertas == 0 %}
+                                <i class="fas fa-ban text-danger ml-1" title="Sem ofertas disponíveis"></i>
+                                {% else %}
+                                <i class="fas fa-magic text-warning ml-1" title="Faltando gerar recomendação"></i>
+                                {% endif %}
+                            </td>
+                            <td>R$ {{ "%.2f"|format(est.renda_mensal) }}</td>
+                            <td>{{ est.interesse_tipo|capitalize }}</td>
+                            <td>{{ est.interesse_bairro }}</td>
+                            <!-- Substituir os badges atuais por: -->
+                            <td class="text-center">
+                                {% if est.total_recomendacoes > 0 %}
+                                <span class="badge badge-success badge-pill py-1 px-2">
+                                    <i class="fas fa-check-circle mr-1"></i> {{ est.total_recomendacoes }}
+                                    recomendações
+                                </span>
+                                {% elif est.total_ofertas == 0 %}
+                                <span class="badge badge-danger badge-pill py-1 px-2" data-toggle="tooltip"
+                                    title="Cliente não possui imóveis compatíveis com seus critérios">
+                                    <i class="fas fa-ban mr-1"></i> Sem ofertas
+                                </span>
+                                {% else %}
+                                <span class="badge badge-warning badge-pill py-1 px-2" data-toggle="tooltip"
+                                    title="{{ est.total_ofertas }} imóveis compatíveis encontrados">
+                                    <i class="fas fa-magic mr-1"></i> {{ est.total_ofertas }} compatíveis
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    {% if est.total_recomendacoes > 0 %}
+                                    <a href="{{ url_for('recomendacoes.cliente', cliente_id=est.id, modo='ver') }}"
+                                        class="btn btn-primary" title="Visualizar recomendações">
+                                        <i class="fas fa-eye"></i> Ver
+                                    </a>
+                                    <a href="{{ url_for('recomendacoes.cliente', cliente_id=est.id, modo='gerar') }}"
+                                        class="btn btn-outline-primary" title="Gerar nova recomendação">
+                                        <i class="fas fa-plus"></i>
+                                    </a>
+
+                                    {% elif est.total_ofertas == 0 %}
+                                    <a href="{{ url_for('recomendacoes.cliente', cliente_id=est.id, modo='selecionar') }}"
+                                        class="btn btn-danger" title="Selecionar manualmente imóveis">
+                                        <i class="fas fa-hand-pointer"></i> Selecionar
+                                    </a>
+
+                                    {% else %}
+                                    <a href="{{ url_for('recomendacoes.cliente', cliente_id=est.id, modo='gerar') }}"
+                                        class="btn btn-success" title="Gerar recomendação automática">
+                                        <i class="fas fa-magic"></i> Gerar
+                                    </a>
+                                    <a href="{{ url_for('recomendacoes.cliente', cliente_id=est.id, modo='selecionar') }}"
+                                        class="btn btn-outline-secondary" title="Seleção manual">
+                                        <i class="fas fa-hand-pointer"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginação -->
+            <nav aria-label="Page navigation">
+                <ul class="pagination pagination-sm justify-content-center">
+                    {% if page > 1 %}
+                    <li class="page-item">
+                        <a class="page-link"
+                            href="{{ url_for('recomendacoes.listar', filtro=filtro, busca=busca, page=page-1) }}">Anterior</a>
+                    </li>
+                    {% endif %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Página {{ page }}</span>
+                    </li>
+                    {% if (page * per_page) < total %} <li class="page-item">
+                        <a class="page-link"
+                            href="{{ url_for('recomendacoes.listar', filtro=filtro, busca=busca, page=page+1) }}">Próxima</a>
+                        </li>
+                        {% endif %}
+                </ul>
+            </nav>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

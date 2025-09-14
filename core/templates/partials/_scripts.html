@@ -1,0 +1,37 @@
+<!-- Core JavaScript -->
+<script src="{{ url_for('static', filename='assets/vendor/jquery/jquery.min.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/vendor/jquery-easing/jquery.easing.min.js') }}"></script>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Mask Plugin -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+
+<!-- Main App JS -->
+<script src="{{ url_for('static', filename='assets/js/sb-admin-2.min.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/js/app.js') }}"></script>
+<!-- Seus scripts -->
+<script src="{{ url_for('static', filename='assets/js/modals.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/js/pages/dashboard.js') }}"></script>
+
+<!-- Flash Messages Handler -->
+<script>
+    // Mostrar mensagens flash como Toast
+    {% with messages = get_flashed_messages(with_categories = true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: '{{ category }}',
+        title: '{{ message }}',
+        showConfirmButton: false,
+        timer: 5000,
+        timerProgressBar: true
+    });
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+</script>

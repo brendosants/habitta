@@ -1,0 +1,37 @@
+/* Avatar Preview */
+.avatar-lg {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+}
+
+/* Máscara para CPF */
+.cpf-mask {
+    font-family: monospace;
+}
+
+/* Cursor pointer para upload */
+.cursor-pointer {
+    cursor: pointer;
+}
+
+
+.card.selecionado {
+    border-left: 4px solid #28a745 !important;
+    background-color: #f8fff9 !important;
+}
+
+.btn-selecionar {
+    transition: all 0.3s ease;
+}
+
+.btn-selecionar:hover {
+    transform: scale(1.05);
+}
+
+.badge-selecionado {
+    font-size: 0.9em;
+    padding: 0.5em 0.8em;
+}
+
+

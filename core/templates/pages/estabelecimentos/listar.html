@@ -1,0 +1,102 @@
+<!-- templates/pages/estabelecimentos/listar.html -->
+{% extends "base.html" %}
+
+{% block title %}Estabelecimentos | Habitta{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Lista de Estabelecimentos</h1>
+        <a href="{{ url_for('estabelecimentos.novo') }}" class="btn btn-primary btn-icon-split">
+            <span class="icon text-white-50">
+                <i class="fas fa-plus"></i>
+            </span>
+            <span class="text">Novo Estabelecimento</span>
+        </a>
+    </div>
+
+    <!-- DataTales Example -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">Todos os Estabelecimentos</h6>
+            <div class="dropdown no-arrow">
+                <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                </a>
+                <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                    aria-labelledby="dropdownMenuLink">
+                    <a class="dropdown-item" href="{{ url_for('estabelecimentos.exportar', formato='csv') }}">
+                        <i class="fas fa-file-csv fa-sm fa-fw mr-2 text-gray-400"></i>
+                        Exportar como CSV
+                    </a>
+                    <a class="dropdown-item" href="{{ url_for('estabelecimentos.exportar', formato='excel') }}">
+                        <i class="fas fa-file-excel fa-sm fa-fw mr-2 text-gray-400"></i>
+                        Exportar como Excel
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Tipo</th>
+                            <th>Bairro</th>
+                            <th>Faixa (R$)</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for est in estabelecimentos %}
+                        <tr>
+                            <td>{{ est.nome }}</td>
+                            <td>
+                                <span class="badge badge-{{ 'success' if est.tipo == 'comercial' else 'info' }}">
+                                    {{ est.tipo|capitalize }}
+                                </span>
+                            </td>
+                            <td>{{ est.bairro }}</td>
+                            <td>R$ {{ "%.2f"|format(est.faixa_min) }} - R$ {{
+                                "%.2f"|format(est.faixa_max) }}</td>
+                            <td>
+                                <!-- Botão Ver -->
+                                <button class="btn btn-info btn-sm" onclick="carregarModal('ver', {{ est.id }})">
+                                    <i class="far fa-eye"></i>
+                                </button>
+
+                                <!-- Botão Editar -->
+                                <button class="btn btn-warning btn-sm" onclick="carregarModal('editar', {{ est.id }})">
+                                    <i class="far fa-edit"></i>
+                                </button>
+
+                                <!-- Botão Excluir (mantemos o atual) -->
+                                <button class="btn btn-danger btn-sm"
+                                    onclick="confirmarExclusao({{ est.id }}, '{{ est.nome }}')">
+                                    <i class="far fa-trash-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!-- Modal para Visualizar/Editar -->
+        <div class="modal fade" id="estabelecimentoModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content" id="modal-content">
+                    <!-- Conteúdo será carregado via AJAX -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="{{ url_for('static', filename='assets/js/estabelecimentos/listar.js') }}"></script>
+{% endblock %}

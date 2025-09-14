@@ -1,0 +1,54 @@
+<form id="formEdicao" method="POST" action="{{ url_for('clientes.atualizar', id=cliente.id) }}">
+    <div class="modal-header bg-warning">
+        <h5 class="modal-title">Editar {{ cliente.nome }}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div class="form-group">
+            <label for="nome">Nome *</label>
+            <input type="text" class="form-control" id="nome" name="nome" value="{{ cliente.nome }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="interesse_tipo">Tipo Interesse *</label>
+            <select class="form-control" id="interesse_tipo" name="interesse_tipo" required>
+                <option value="comercial" {% if cliente.interesse_tipo == 'comercial' %}selected{% endif %}>Comercial</option>
+                <option value="residencial" {% if cliente.interesse_tipo == 'residencial' %}selected{% endif %}>Residencial</option>
+                <option value="ambos" {% if cliente.interesse_tipo == 'ambos' %}selected{% endif %}>Ambos</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="interesse_bairro">Bairro Interesse*</label>
+            <input type="text" class="form-control" id="interesse_bairro" name="interesse_bairro" value="{{ cliente.interesse_bairro }}" required>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group col-md-4">
+                <label for="renda_mensal">Renda Mensal (R$) *</label>
+                <input type="number" step="0.01" class="form-control" id="renda_mensal" name="renda_mensal" 
+                       value="{{ cliente.renda_mensal }}" required>
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label for="email">Email</label>
+                <input type="email" class="form-control" id="email" name="email" 
+                       value="{{ cliente.email or '' }}">
+            </div>
+            <div class="form-group col-md-6">
+                <label for="telefone">Telefone</label>
+                <input type="tel" class="form-control" id="telefone" name="telefone" 
+                       value="{{ cliente.telefone or '' }}"
+                       pattern="\(?\d{2}\)?[\s-]?\d{4,5}[\s-]?\d{4}"
+                       title="Formato: (99) 99999-9999 ou 99 9999-9999">
+            </div>
+        </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+    </div>
+</form>

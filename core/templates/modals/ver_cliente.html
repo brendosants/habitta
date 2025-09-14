@@ -1,0 +1,33 @@
+<div class="modal-header bg-primary text-white">
+    <h5 class="modal-title">{{ cliente.nome }}</h5>
+    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+<div class="modal-body">
+    <div class="row">
+        <div class="col-md-6">
+            <p><strong>Renda Mensal:</strong> R$ {{ "%.2f"|format(cliente.renda_mensal) }}</p>
+            <p><strong>Telefone:</strong> {{ cliente.telefone }}</p>
+            <p><strong>Email:</strong> {{ cliente.email }}</p>
+        </div>
+        <div class="col-md-6">
+            <p><strong>Tipo Interesse:</strong>
+                <span class="badge badge-{{ 
+    'success' if cliente.interesse_tipo == 'comercial' 
+    else 'info' if cliente.interesse_tipo == 'residencial' 
+    else 'warning' if cliente.interesse_tipo == 'ambos' 
+    else 'secondary' 
+}}
+
+">
+                    {{ cliente.interesse_tipo|capitalize }}
+                </span>
+            </p>
+            <p><strong>Bairro Interesse:</strong> {{ cliente.interesse_bairro }}</p>
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+</div>

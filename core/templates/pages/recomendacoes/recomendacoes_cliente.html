@@ -1,0 +1,498 @@
+<!-- templates/pages/clientes/recomendacoes_cliente.html -->
+{% extends "base.html" %}
+
+{% block title %}Recomendações para {{ cliente.nome }} | Habitta{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid">
+    <!-- Título -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-1 text-gray-800">Recomendações para {{ cliente.nome }}</h1>
+        </div>
+        <div>
+            {% if not recomendacao or recomendacao.status != 'finalizada' %}
+            <div class="btn-group">
+                <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown">
+                    <i class="fas fa-plus"></i> Nova Recomendação
+                </button>
+                <div class="dropdown-menu">
+                    <a class="dropdown-item"
+                        href="{{ url_for('recomendacoes.cliente', cliente_id=cliente.id, modo='gerar') }}">
+                        <i class="fas fa-magic"></i> Gerar Automática
+                    </a>
+                    <a class="dropdown-item"
+                        href="{{ url_for('recomendacoes.cliente', cliente_id=cliente.id, modo='selecionar') }}">
+                        <i class="fas fa-hand-pointer"></i> Seleção Manual
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Dados do cliente -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <strong>Renda mensal:</strong> R$ {{ "%.2f"|format(cliente.renda_mensal) }}<br>
+            <strong>Bairros de Interesse:</strong> {{ cliente.interesse_bairro }}<br>
+            <strong>Tipos de Imóvel:</strong> {{ cliente.interesse_tipo|capitalize }}
+        </div>
+    </div>
+
+    <!-- Dropdown para trocar recomendação -->
+    {% if recomendacoes %}
+    <div class="mb-3 d-flex align-items-center">
+        <label class="mr-2 mb-0"><strong>Selecionar recomendação:</strong></label>
+        <select name="recomendacao_id" class="form-control d-inline-block w-auto mr-2"
+            onchange="trocarRecomendacao(this.value)">
+            {% for r in recomendacoes %}
+            <option value="{{ r.id }}" {% if recomendacao and r.id==recomendacao.id %}selected{% endif %}>
+                #{{ r.id }} - {{ r.status|capitalize }} ({{ r.data_criacao.strftime('%d/%m/%Y') if r.data_criacao }})
+            </option>
+            {% endfor %}
+        </select>
+
+        <!-- Botão de excluir recomendação -->
+        {% if recomendacao %}
+        <form method="post" action="{{ url_for('recomendacoes.excluir', recomendacao_id=recomendacao.id) }}"
+            class="d-inline-block" onsubmit="return confirm('Tem certeza que deseja excluir esta recomendação?')">
+            <input type="hidden" name="cliente_id" value="{{ cliente.id }}">
+            <button type="submit" class="btn btn-danger btn-sm">
+                <i class="fas fa-trash"></i> Excluir
+            </button>
+        </form>
+        {% endif %}
+    </div>
+    {% endif %}
+
+
+
+
+    <!-- Barra de progresso para seleção manual -->
+    {% set total_selecionados = imoveis|selectattr('selecionado')|list|length %}
+    {% if modo == 'selecionar' and imoveis %}
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="m-0 font-weight-bold text-primary">Progresso da Seleção</h6>
+                <span class="badge badge-primary">{{ total_selecionados }}/{{ imoveis|length }}</span>
+            </div>
+
+            <div class="progress mb-3" style="height: 20px;">
+                <div class="progress-bar bg-success" role="progressbar"
+                    style="width: {{ (total_selecionados / imoveis|length) * 100 }}%">
+                    {{ (( total_selecionados / imoveis|length) * 100)|round|int }}%
+                </div>
+            </div>
+
+            {% if total_selecionados > 0 %}
+            <form method="post" action="{{ url_for('recomendacoes.finalizar_selecao') }}" class="d-inline-block"
+                onsubmit="return confirm('Tem certeza que deseja finalizar a seleção?')">
+                <input type="hidden" name="cliente_id" value="{{ cliente.id }}">
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-check-double"></i> Finalizar Seleção ({{  total_selecionados }} imóveis)
+                </button>
+            </form>
+            {% endif %}
+
+            <a href="{{ url_for('recomendacoes.listar') }}" class="btn btn-outline-secondary ml-2">
+                <i class="fas fa-arrow-left"></i> Voltar
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+
+
+    <!-- Sistema de abas -->
+    <ul class="nav nav-tabs mb-4" id="recomendacaoTabs" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link {% if modo != 'ver' %}active{% endif %}" id="imoveis-tab" data-toggle="tab"
+                href="#imoveis" role="tab">
+                <i class="fas fa-home"></i> Imóveis ({{ imoveis|length }})
+            </a>
+        </li>
+        {% if recomendacao %}
+        <li class="nav-item">
+            <a class="nav-link {% if modo == 'ver' %}active{% endif %}" id="detalhes-tab" data-toggle="tab"
+                href="#detalhes" role="tab">
+                <i class="fas fa-info-circle"></i> Detalhes
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="comunicacao-tab" data-toggle="tab" href="#comunicacao" role="tab">
+                <i class="fas fa-paper-plane"></i> Comunicação
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+
+    <div class="tab-content" id="recomendacaoTabContent">
+        <!-- Aba de Imóveis -->
+        <div class="tab-pane fade {% if modo != 'ver' %}show active{% endif %}" id="imoveis" role="tabpanel">
+            <!-- Lista de imóveis -->
+            <div class="row">
+                {% if imoveis %}
+                {% for imovel in imoveis %}
+                <div class="col-md-4 mb-4 imovel-card" data-tipo="{{ imovel.tipo }}"
+                    data-compativel="{% if imovel.compat_bairro and imovel.compat_renda %}sim{% else %}nao{% endif %}"
+                    data-selecionado="{% if imovel.selecionado %}sim{% else %}nao{% endif %}">
+                    <div class="card shadow h-100 border-0">
+                        <div class="card-header py-2 d-flex justify-content-between align-items-center 
+                                    {% if imovel.selecionado %}bg-success text-white{% else %}bg-light{% endif %}">
+                            <h6 class="m-0 font-weight-bold">{{ imovel.tipo|capitalize }}</h6>
+                            <span
+                                class="badge {% if imovel.selecionado %}badge-light{% else %}badge-primary{% endif %}">
+                                R$ {{ "%.2f"|format(imovel.valor_medio)|replace('.', ',') }}
+                            </span>
+                        </div>
+
+                        <div class="card-body">
+                            <h6 class="text-primary">{{ imovel.bairro }}</h6>
+
+                            <div class="d-flex justify-content-between mb-2">
+                                {% if imovel.area %}
+                                <small class="text-muted">
+                                    <i class="fas fa-ruler-combined"></i> {{ imovel.area }}m²
+                                </small>
+                                {% endif %}
+                                {% if imovel.quartos %}
+                                <small class="text-muted">
+                                    <i class="fas fa-bed"></i> {{ imovel.quartos }} quartos
+                                </small>
+                                {% endif %}
+                                {% if imovel.vagas %}
+                                <small class="text-muted">
+                                    <i class="fas fa-car"></i> {{ imovel.vagas }} vagas
+                                </small>
+                                {% endif %}
+                            </div>
+
+                            <!-- Indicadores de compatibilidade -->
+                            <div class="compatibilidade-indicators mb-3">
+                                <span
+                                    class="badge {% if imovel.compat_bairro %}badge-success{% else %}badge-warning{% endif %} mr-1"
+                                    data-toggle="tooltip"
+                                    title="{% if imovel.compat_bairro %}Bairro compatível{% else %}Fora do bairro de interesse{% endif %}">
+                                    <i class="fas fa-map-marker-alt"></i> Bairro
+                                </span>
+                                <span
+                                    class="badge {% if imovel.compat_renda %}badge-success{% else %}badge-warning{% endif %}"
+                                    data-toggle="tooltip"
+                                    title="{% if imovel.compat_renda %}Renda compatível{% else %}Fora da faixa de renda{% endif %}">
+                                    <i class="fas fa-money-bill-wave"></i> Renda
+                                </span>
+                            </div>
+
+                            <!-- Ações -->
+                            <div class="d-flex justify-content-between">
+                                <a href="#" class="btn btn-sm btn-outline-primary" data-toggle="modal"
+                                    data-target="#imovelModal{{ imovel.id }}">
+                                    <i class="fas fa-expand"></i> Detalhes
+                                </a>
+
+                                {% if modo == 'selecionar' %}
+                                <form method="post" class="d-inline">
+                                    <input type="hidden" name="cliente_id" value="{{ cliente.id }}">
+                                    <input type="hidden" name="estabelecimento_id" value="{{ imovel.id }}">
+
+                                    {% if imovel.selecionado %}
+                                    <button type="submit" formaction="{{ url_for('recomendacoes.remover_selecao') }}"
+                                        class="btn btn-sm btn-danger">
+                                        <i class="fas fa-times"></i> Remover
+                                    </button>
+                                    {% else %}
+                                    <button type="submit" formaction="{{ url_for('recomendacoes.selecionar_imovel') }}"
+                                        class="btn btn-sm btn-success">
+                                        <i class="fas fa-plus"></i> Adicionar
+                                    </button>
+                                    {% endif %}
+                                </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="col-12">
+                    <div class="alert alert-warning text-center">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                        <h4>Nenhum imóvel encontrado</h4>
+                        <p>Não foram encontrados imóveis que correspondam aos critérios de busca.</p>
+                        {% if modo != 'selecionar' %}
+                        <a href="{{ url_for('recomendacoes.cliente', cliente_id=cliente.id, modo='selecionar') }}"
+                            class="btn btn-primary mt-2">
+                            <i class="fas fa-hand-pointer"></i> Tentar seleção manual
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Aba de Detalhes -->
+        {% if recomendacao %}
+        <div class="tab-pane fade {% if modo == 'ver' %}show active{% endif %}" id="detalhes" role="tabpanel">
+            <div class="card shadow">
+                <div class="card-body">
+                    <form method="post" action="{{ url_for('recomendacoes.salvar', cliente_id=cliente.id) }}">
+                        <input type="hidden" name="recomendacao_id" value="{{ recomendacao.id }}">
+                        <div class="form-group">
+                            <label><i class="fas fa-sticky-note mr-2"></i>Observações internas (somente
+                                corretor):</label>
+                            <textarea name="observacoes" class="form-control" rows="3"
+                                placeholder="Anotações sobre esta recomendação...">{{ recomendacao.observacoes if recomendacao.observacoes else '' }}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-envelope mr-2"></i>Mensagem para o cliente:</label>
+                            <textarea name="mensagem" class="form-control" rows="3"
+                                placeholder="Mensagem personalizada para o cliente...">{{ recomendacao.mensagem if recomendacao.mensagem else '' }}</textarea>
+                            <small class="form-text text-muted">Esta mensagem será enviada junto com as
+                                recomendações.</small>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Salvar Alterações
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Aba de Comunicação -->
+        {% if recomendacao %}
+        <div class="tab-pane fade" id="comunicacao" role="tabpanel">
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow h-100">
+                        <div class="card-header bg-info text-white">
+                            <h6 class="m-0 font-weight-bold"><i class="fas fa-envelope"></i> Enviar por E-mail</h6>
+                        </div>
+                        <div class="card-body">
+                            <form>
+                                <div class="form-group">
+                                    <label>E-mail do cliente:</label>
+                                    <input type="email" class="form-control" value="{{ cliente.email }}" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label>Assunto:</label>
+                                    <input type="text" class="form-control"
+                                        value="Recomendações de Imóveis - {{ cliente.nome }}">
+                                </div>
+                                <button type="button" class="btn btn-info">
+                                    <i class="fas fa-paper-plane"></i> Enviar E-mail
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow h-100">
+                        <div class="card-header bg-success text-white">
+                            <h6 class="m-0 font-weight-bold"><i class="fas fa-mobile-alt"></i> Enviar por WhatsApp</h6>
+                        </div>
+                        <div class="card-body">
+                            <form>
+                                <div class="form-group">
+                                    <label>Telefone do cliente:</label>
+                                    <input type="tel" class="form-control" value="{{ cliente.telefone }}" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label>Mensagem pré-definida:</label>
+                                    <textarea class="form-control" rows="3"
+                                        readonly>Olá {{ cliente.nome }}, segue minhas recomendações de imóveis!</textarea>
+                                </div>
+                                <button type="button" class="btn btn-success">
+                                    <i class="fab fa-whatsapp"></i> Abrir WhatsApp
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <div class="card shadow">
+                        <div class="card-header bg-primary text-white">
+                            <h6 class="m-0 font-weight-bold"><i class="fas fa-file-pdf"></i> Gerar PDF</h6>
+                        </div>
+                        <div class="card-body text-center">
+                            <p>Gere um documento PDF com todas as recomendações para enviar ao cliente ou imprimir.</p>
+                            <button class="btn btn-primary btn-lg">
+                                <i class="fas fa-file-pdf"></i> Gerar PDF das Recomendações
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Ações finais -->
+    <div class="text-right mt-4">
+        <a href="{{ url_for('recomendacoes.listar') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Voltar para a Lista
+        </a>
+    </div>
+</div>
+
+<!-- Modais para detalhes dos imóveis -->
+{% for imovel in imoveis %}
+<div class="modal fade" id="imovelModal{{ imovel.id }}" tabindex="-1" role="dialog"
+    aria-labelledby="imovelModalLabel{{ imovel.id }}" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imovelModalLabel{{ imovel.id }}">{{ imovel.tipo|capitalize }} - {{
+                    imovel.bairro }}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Informações Básicas</h6>
+                        <p><strong>Tipo:</strong> {{ imovel.tipo|capitalize }}</p>
+                        <p><strong>Bairro:</strong> {{ imovel.bairro }}</p>
+                        <p><strong>Valor médio:</strong> R$ {{ "%.2f"|format(imovel.valor_medio) }}</p>
+                        <p><strong>Faixa de preço:</strong> R$ {{ "%.2f"|format(imovel.faixa_min) }} - R$ {{
+                            "%.2f"|format(imovel.faixa_max) }}</p>
+
+                        {% if imovel.area %}
+                        <p><strong>Área:</strong> {{ imovel.area }} m²</p>
+                        {% endif %}
+
+                        {% if imovel.quartos %}
+                        <p><strong>Quartos:</strong> {{ imovel.quartos }}</p>
+                        {% endif %}
+
+                        {% if imovel.vagas %}
+                        <p><strong>Vagas:</strong> {{ imovel.vagas }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6">
+                        <h6>Informações de Contato</h6>
+                        <p><strong>Nome de Contato:</strong> {{ imovel.contato_nome }}</p>
+                        <p><strong>Telefone de Contato:</strong> {{ imovel.contato_telefone }}</p>
+
+                        <h6 class="mt-4">Compatibilidade</h6>
+                        <div class="d-flex">
+                            <span
+                                class="badge {% if imovel.compat_bairro %}badge-success{% else %}badge-warning{% endif %} mr-2">
+                                <i class="fas fa-map-marker-alt"></i> Bairro: {% if imovel.compat_bairro %}Compatível{%
+                                else %}Incompatível{% endif %}
+                            </span>
+                            <span
+                                class="badge {% if imovel.compat_renda %}badge-success{% else %}badge-warning{% endif %}">
+                                <i class="fas fa-money-bill-wave"></i> Renda: {% if imovel.compat_renda %}Compatível{%
+                                else %}Incompatível{% endif %}
+                            </span>
+                        </div>
+
+                        {% if imovel.observacoes %}
+                        <h6 class="mt-4">Observações</h6>
+                        <p>{{ imovel.observacoes }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                {% if modo == 'selecionar' %}
+                <form method="post" class="d-inline">
+                    <input type="hidden" name="cliente_id" value="{{ cliente.id }}">
+                    <input type="hidden" name="estabelecimento_id" value="{{ imovel.id }}">
+
+                    {% if imovel.selecionado %}
+                    <button type="submit" formaction="{{ url_for('recomendacoes.remover_selecao') }}"
+                        class="btn btn-danger">
+                        <i class="fas fa-times"></i> Remover da Seleção
+                    </button>
+                    {% else %}
+                    <button type="submit" formaction="{{ url_for('recomendacoes.selecionar_imovel') }}"
+                        class="btn btn-success">
+                        <i class="fas fa-plus"></i> Adicionar à Seleção
+                    </button>
+                    {% endif %}
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Scripts -->
+<script>
+    // Configuração de tooltips
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+
+    // Trocar recomendação
+    function trocarRecomendacao(recomendacaoId) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('recomendacao_id', recomendacaoId);
+        url.searchParams.set('modo', 'ver');
+        window.location.href = url.toString();
+    }
+
+    // Filtros para imóveis
+    function filtrarImoveis(tipo) {
+        const cards = document.querySelectorAll('.imovel-card');
+        cards.forEach(card => {
+            if (tipo === 'todos') {
+                card.style.display = 'block';
+            } else if (tipo === 'compativel') {
+                card.style.display = card.dataset.compativel === 'sim' ? 'block' : 'none';
+            } else if (tipo === 'incompativel') {
+                card.style.display = card.dataset.compativel === 'nao' ? 'block' : 'none';
+            } else if (tipo === 'selecionados') {
+                card.style.display = card.dataset.selecionado === 'sim' ? 'block' : 'none';
+            }
+        });
+
+        // Atualizar botões de filtro
+        document.querySelectorAll('#imoveis-tab .btn-group .btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        event.target.classList.add('active');
+    }
+
+    // Loading states para os botões
+    document.addEventListener('DOMContentLoaded', function () {
+        const forms = document.querySelectorAll('form');
+
+        forms.forEach(form => {
+            form.addEventListener('submit', function (e) {
+                const buttons = this.querySelectorAll('button[type="submit"]');
+                buttons.forEach(button => {
+                    const originalHTML = button.innerHTML;
+                    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+                    button.disabled = true;
+
+                    // Restaurar após 10 segundos (rede de segurança)
+                    setTimeout(() => {
+                        button.innerHTML = originalHTML;
+                        button.disabled = false;
+                    }, 10000);
+                });
+            });
+        });
+
+        // Auto-scroll para imóveis selecionados
+        const primeiroSelecionado = document.querySelector('[data-selecionado="sim"]');
+        if (primeiroSelecionado && window.location.href.includes('modo=selecionar')) {
+            primeiroSelecionado.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    });
+</script>
+
+{% endblock %}

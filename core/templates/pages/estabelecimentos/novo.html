@@ -1,0 +1,94 @@
+<!-- templates/pages/estabelecimentos/novo.html -->
+{% extends "base.html" %}
+
+{% block title %}Estabelecimentos | Habitta{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <h1 class="h3 mb-2 text-gray-800">Cadastrar Estabelecimento</h1>
+
+    <div class="card shadow mb-4">
+        <form method="POST" action="{{ url_for('estabelecimentos.novo') }}">
+            <div class="card-body">
+
+                <div class="form-group">
+                    <label>Nome do estabelecimento</label>
+                    <input value="{{ estabelecimento.nome or '' }}" type="text" class="form-control" id="nome"
+                        name="nome" placeholder="Nome" required>
+                </div>
+                <div class="form-group">
+                    <label>Tipo de estabelecimento</label>
+                    <select class="form-control" id="tipo" name="tipo" required>
+                        <option value="">Selecione um tipo</option>
+                        {% for tipo_option in tipos %}
+                        <option value="{{ tipo_option }}" {% if estabelecimento.tipo==tipo_option %}selected{% endif %}>
+                            {{ tipo_option }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+
+
+                <div class="form-group">
+                    <label>Bairro / localização</label>
+                    <input value="{{ estabelecimento.bairro or '' }}" type="text" class="form-control" id="bairro"
+                        name="bairro" placeholder="Bairro" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Faixa salarial mínimo</label>
+                    <input value="{{ estabelecimento.faixa_min or '' }}" type="text" class="form-control" id="faixa_min"
+                        name="faixa_min" placeholder="Mínimo" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Faixa salarial máximo</label>
+                    <input value="{{ estabelecimento.faixa_max or '' }}" type="text" class="form-control" id="faixa_max"
+                        name="faixa_max" placeholder="Máximo" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Valor médio</label>
+                    <input value="{{ estabelecimento.valor_medio or '' }}" type="text" class="form-control"
+                        id="valor_medio" name="valor_medio" placeholder="Valor Médio" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Nome do Contato</label>
+                    <input value="{{ estabelecimento.contato_nome or '' }}" type="text" class="form-control"
+                        id="contato_nome" name="contato_nome" placeholder="Nome do Contato">
+                </div>
+
+                <div class="form-group">
+                    <label>Telefone do Contato</label>
+                    <input value="{{ estabelecimento.contato_telefone or '' }}" type="text" class="form-control"
+                        id="contato_telefone" name="contato_telefone" placeholder="Telefone do Contato">
+                </div>
+
+                <div class="form-group">
+                    <label>Observações</label>
+                    <input value="{{ estabelecimento.observacoes or '' }}" type="text" class="form-control"
+                        id="observacoes" name="observacoes" placeholder="Observações">
+                </div>
+
+                <input type="hidden" name="id" value="{{ estabelecimento.id or '' }}">
+                <small>
+                    <div id="mensagem"></div>
+                </small>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary"
+                    onclick="this.disabled=true; this.form.submit();">Salvar</button>
+
+            </div>
+        </form>
+    </div>
+
+
+</div>
+{% endblock %}

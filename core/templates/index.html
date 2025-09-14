@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="text-center py-5">
+    <div class="spinner-border" role="status">
+        <span class="sr-only">Carregando...</span>
+    </div>
+    <p class="mt-2">Redirecionando...</p>
+</div>
+<script>
+// Redirecionamento secundário (caso o do Flask falhe)
+window.location.href = "{% if current_user.is_authenticated %}{{ url_for('main.dashboard') }}{% else %}{{ url_for('auth.login') }}{% endif %}";
+</script>
+{% endblock %}

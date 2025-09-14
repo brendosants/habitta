@@ -1,0 +1,17 @@
+/* Avatar Preview */
+.avatar-lg {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+}
+
+/* Máscara para CPF */
+.cpf-mask {
+    font-family: monospace;
+}
+
+/* Cursor pointer para upload */
+.cursor-pointer {
+    cursor: pointer;
+}
+

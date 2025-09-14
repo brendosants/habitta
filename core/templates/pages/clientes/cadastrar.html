@@ -1,0 +1,82 @@
+<!-- templates/pages/clientes/cadastrar.html -->
+{% extends "base.html" %}
+
+{% block title %}Estabelecimentos | Habitta{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <h1 class="h3 mb-2 text-gray-800">Cadastrar Clientes</h1>
+
+    <div class="card shadow mb-4">
+        <form method="POST" action="{{ url_for('clientes.cadastrar') }}">
+            <div class="card-body">
+
+                <div class="form-group">
+                    <label>Nome do cliente</label>
+                    <input value="{{ cliente.nome or '' }}" type="text" class="form-control" id="nome" name="nome"
+                        placeholder="Nome" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Renda Mensal</label>
+                    <input value="{{ cliente.renda_mensal or '' }}" type="text" class="form-control" id="renda_mensal"
+                        name="renda_mensal" placeholder="Renda Mensal" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Telefone do Contato</label>
+                    <input value="{{ cliente.telefone or '' }}" type="text" class="form-control" id="telefone"
+                        name="telefone" placeholder="Telefone do Contato">
+                </div>
+
+                <div class="form-group">
+                    <label>Email</label>
+                    <input value="{{ cliente.email or '' }}" type="email" class="form-control" id="email" name="email"
+                        placeholder="Email">
+                </div>
+
+                <div class="form-group">
+                    <label>Tipo de estabelecimento de interesse</label>
+                    <select class="form-control" id="interesse_tipo" name="interesse_tipo" required>
+                        <option value="residencial" {% if cliente and cliente.interesse_tipo=='residencial' %}selected{%
+                            endif %}>Residencial
+                        </option>
+                        <option value="comercial" {% if cliente and cliente.interesse_tipo=='comercial' %}selected{%
+                            endif %}>Comercial</option>
+                        <option value="ambos" {% if cliente and cliente.interesse_tipo=='ambos' %}selected{% endif %}>
+                            Ambos</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Bairro de interesse</label>
+                    <input value="{{ cliente.interesse_bairro or '' }}" type="text" class="form-control"
+                        id="interesse_bairro" name="interesse_bairro" placeholder="Bairro de interesse" required>
+                </div>
+
+                <input type="hidden" name="id" value="{{ cliente.id or '' }}">
+                <small>
+                    <div id="mensagem"></div>
+                </small>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary" id="submitBtn">Salvar</button>
+
+                <script>
+                    document.querySelector('form').addEventListener('submit', function () {
+                        document.getElementById('submitBtn').disabled = true;
+                    });
+                </script>
+
+            </div>
+        </form>
+    </div>
+
+
+</div>
+
+{% endblock %}

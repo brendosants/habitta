@@ -1,0 +1,29 @@
+<div class="modal-header bg-primary text-white">
+    <h5 class="modal-title">{{ estabelecimento.nome }}</h5>
+    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+<div class="modal-body">
+    <div class="row">
+        <div class="col-md-6">
+            <p><strong>Tipo:</strong> 
+                <span class="badge badge-{{ 'success' if estabelecimento.tipo == 'comercial' else 'info' }}">
+                    {{ estabelecimento.tipo|capitalize }}
+                </span>
+            </p>
+            <p><strong>Bairro:</strong> {{ estabelecimento.bairro }}</p>
+            <p><strong>Nome de Contato:</strong> {{ estabelecimento.contato_nome }}</p>
+            <p><strong>Telefone de Contato:</strong> {{ estabelecimento.contato_telefone }}</p>
+        
+        </div>
+        <div class="col-md-6">
+            <p><strong>Faixa de Preço:</strong> R$ {{ "%.2f"|format(estabelecimento.faixa_min) }} - R$ {{ "%.2f"|format(estabelecimento.faixa_max) }}</p>
+            <p><strong>Valor médio:</strong> R$ {{ "%.2f"|format(estabelecimento.valor_medio) }}</p>
+            <p><strong>Observações:</strong> {{ estabelecimento.observacoes }}</p>
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+</div>
